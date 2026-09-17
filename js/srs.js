@@ -54,6 +54,37 @@ window.SRS = (function () {
 
   function isDue(c, now) { return !!c && c.d <= (now || Date.now()); }
 
+  /* New cards are filtered by the level you are working at; cards already in
+     rotation always come back regardless of level. */
+  function levelOk(deck) {
+    var lv = Store.settings.level || 'A1A2';
+    if (lv === 'A1A2') return true;
+    return (deck.level || 'A1') === lv;
+  }
+
+  function markKnown(key) {
+    Store.putCard(key, { r: 3, i: 30, e: 2.6, d: Date.now() + 30 * DAY, ok: 1, bad: 0, lapses: 0 });
+  }
+
+  function buildable(item) {
+    if (!item.ex) return false;
+    var w = item.ex.trim().split(/\s+/);
+    return w.length >= 3 && w.length <= 8;
+  }
+
+  /* Cards whose example sentence is short enough to rebuild word by word. */
+  function buildableKeys(decks) {
+    var seen = [], rest = [];
+    decks.forEach(function (d) {
+      d.items.forEach(function (it, i) {
+        if (!buildable(it)) return;
+        var k = d.id + ':' + i;
+        (Store.card(k) ? seen : rest).push(k);
+      });
+    });
+    return shuffle(seen).concat(shuffle(rest));
+  }
+
   function keysOf(deck) {
     return deck.items.map(function (_, i) { return deck.id + ':' + i; });
   }
@@ -91,9 +122,10 @@ window.SRS = (function () {
     var now = Date.now();
     var due = [], fresh_ = [];
     decks.forEach(function (d) {
+      var allowNew = opts.ignoreLevel || levelOk(d);
       keysOf(d).forEach(function (k) {
         var c = Store.card(k);
-        if (!c) fresh_.push(k);
+        if (!c) { if (allowNew) fresh_.push(k); }
         else if (isDue(c, now)) due.push({ k: k, d: c.d });
       });
     });
@@ -145,6 +177,7 @@ window.SRS = (function () {
   return {
     grade: grade, stage: stage, isDue: isDue, keysOf: keysOf,
     countsFor: countsFor, buildQueue: buildQueue, weakKeys: weakKeys,
-    shuffle: shuffle, dueIn: dueIn, fresh: fresh
+    shuffle: shuffle, dueIn: dueIn, fresh: fresh,
+    levelOk: levelOk, markKnown: markKnown, buildable: buildable, buildableKeys: buildableKeys
   };
 })();

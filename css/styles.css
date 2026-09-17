@@ -313,7 +313,7 @@ body.studying #topbar, body.studying #tabbar { display: none; }
 .quit { width: 32px; height: 32px; flex: none; border: 1px solid var(--line); border-radius: var(--r); color: var(--ink-2); font-size: 15px; background: var(--surface); }
 .study-count { font-size: 12px; color: var(--ink-3); font-weight: 600; flex: none; }
 
-.card-wrap { flex: 1; display: flex; align-items: center; }
+.card-wrap { flex: 1; display: flex; align-items: flex-start; }
 .card {
   flex: 1; min-height: 190px; justify-content: center;
   display: flex; flex-direction: column; gap: 11px; align-items: flex-start;
@@ -379,3 +379,40 @@ body.studying #topbar, body.studying #tabbar { display: none; }
 img, svg { max-width: 100%; }
 html { color-scheme: light dark; }
 .picked { font-size: 12.5px; color: var(--ink-3); }
+
+/* ---------- levels, filters ---------- */
+
+.levelpanel .segmented { margin-top: 2px; }
+.chips { display: flex; gap: 7px; flex-wrap: wrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border: 1.5px solid var(--line); border-radius: 99px;
+  background: var(--surface); font-size: 13px; font-weight: 600; color: var(--ink-2);
+}
+.chip.on { background: var(--blue); border-color: var(--blue); color: var(--on-blue); }
+.chip-n { font-size: 11px; font-variant-numeric: tabular-nums; opacity: .75; }
+.lv {
+  font-family: var(--ui); font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em;
+  vertical-align: 2px; padding: 2px 5px; border: 1px solid var(--line);
+  border-radius: 2px; color: var(--ink-3);
+}
+
+/* ---------- word-order drill ---------- */
+
+.slot {
+  display: flex; flex-wrap: wrap; gap: 6px; width: 100%;
+  min-height: 56px; padding: 9px; align-content: flex-start;
+  background: var(--surface-2); border: 1.5px dashed var(--line);
+}
+.slot-empty { align-items: center; }
+.slot-hint { font-size: 12.5px; color: var(--ink-3); }
+.pool { display: flex; flex-wrap: wrap; gap: 7px; min-height: 44px; }
+.tok {
+  font-family: var(--serif); font-size: 17px; font-weight: 600; line-height: 1;
+  padding: 10px 12px; border: 1.5px solid var(--line-strong); border-radius: var(--r);
+  background: var(--surface); color: var(--ink);
+}
+.tok:active { transform: translateY(1px); }
+.tok-in { border-color: var(--blue); color: var(--blue); background: var(--blue-wash); }
+.btn[disabled] { opacity: .45; cursor: default; }
+.pool-done { padding: 6px 0; }

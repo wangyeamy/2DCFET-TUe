@@ -215,5 +215,83 @@ window.GRAMMAR = [
       ['Hoeveel kost dit?', 'How much does this cost?'],
       ['Wanneer begint de film?', 'When does the film start?']
     ]
+  },
+  {
+    id: 'om-te',
+    title: 'om ... te',
+    en: 'Saying why you do something',
+    body: [
+      'To express a purpose, Dutch uses <b>om ... te</b> with an infinitive at the end of the clause. English often drops "in order"; Dutch keeps <b>om</b>.',
+      'After <b>beginnen, proberen, vergeten, hopen, besluiten</b> and adjectives like <i>moeilijk</i> or <i>leuk</i>, you also need <b>te</b> before the infinitive. With a separable verb the <b>te</b> slides inside: <i>op te staan, mee te gaan</i>.'
+    ],
+    ex: [
+      ['Ik leer Nederlands om hier te werken.', 'I am learning Dutch in order to work here.'],
+      ['Ik heb geen tijd om te koken.', 'I have no time to cook.'],
+      ['Het is moeilijk om vroeg op te staan.', 'It is hard to get up early.'],
+      ['Hij probeert het uit te leggen.', 'He is trying to explain it.']
+    ],
+    tip: 'If you can say "in order to" in English, Dutch almost certainly wants "om ... te".'
+  },
+  {
+    id: 'die-dat',
+    title: 'die of dat',
+    en: 'Joining two sentences',
+    body: [
+      'To attach extra information to a noun, use <b>die</b> for de-words and plurals, and <b>dat</b> for het-words. The verb then moves to the end of that added clause.',
+      'For things (never people) after a preposition, Dutch prefers <b>waar + preposition</b>: <i>de stoel waarop ik zit</i>, more commonly split as <i>waar ik op zit</i>.'
+    ],
+    ex: [
+      ['de man die naast mij woont', 'the man who lives next to me'],
+      ['het boek dat ik gisteren kocht', 'the book that I bought yesterday'],
+      ['de mensen die ik ken', 'the people I know'],
+      ['de trein waar ik op wacht', 'the train I am waiting for']
+    ]
+  },
+  {
+    id: 'zou',
+    title: 'zou, zou graag',
+    en: 'Being polite and hypothetical',
+    body: [
+      '<b>zou</b> is the politeness gear of Dutch. <i>Zou u ...?</i> softens a request far more than <i>Kunt u ...?</i>, and <b>zou graag willen</b> is the standard way to state a wish at a counter or in an email.',
+      'It also carries hypotheticals: <i>Als ik tijd had, zou ik gaan.</i>'
+    ],
+    ex: [
+      ['Zou u mij kunnen helpen?', 'Could you help me?'],
+      ['Ik zou graag een afspraak willen maken.', 'I would like to make an appointment.'],
+      ['Dat zou fijn zijn.', 'That would be nice.'],
+      ['Als ik jou was, zou ik het vragen.', 'If I were you, I would ask.']
+    ],
+    tip: 'One sentence worth owning by heart: <i>Ik zou graag ... willen.</i> It works in every office in the country.'
+  },
+  {
+    id: 'vergelijken',
+    title: 'Vergelijken',
+    en: 'Bigger, biggest, as big as',
+    body: [
+      'Comparative adds <b>-er</b>, superlative adds <b>-st</b>, and the superlative usually takes <b>het</b> or the article of its noun. Long words ending in -isch or -end take <b>meer</b> and <b>meest</b>.',
+      'Than is <b>dan</b>; as ... as is <b>even ... als</b> or <b>net zo ... als</b>. A few are irregular: <i>goed → beter → best</i>, <i>veel → meer → meest</i>, <i>weinig → minder → minst</i>.'
+    ],
+    ex: [
+      ['Deze fiets is goedkoper dan die.', 'This bike is cheaper than that one.'],
+      ['Dat is de snelste route.', 'That is the fastest route.'],
+      ['Het weer is net zo slecht als gisteren.', 'The weather is just as bad as yesterday.'],
+      ['Nederlands is moeilijker dan ik dacht.', 'Dutch is harder than I thought.']
+    ]
+  },
+  {
+    id: 'imperfectum',
+    title: 'Perfectum of imperfectum?',
+    en: 'Which past tense to use',
+    body: [
+      'In speech the Dutch tell the past with the <b>perfectum</b> (<i>ik heb gewerkt</i>). The simple past, the <b>imperfectum</b> (<i>ik werkte</i>), is for describing background, for stories, and for the handful of verbs that sound stiff in the perfect: <b>zijn, hebben, kunnen, moeten, willen, weten, vinden</b>.',
+      'Regular imperfect endings are <b>-te(n)</b> or <b>-de(n)</b> — same ’t kofschip rule as the participle.'
+    ],
+    ex: [
+      ['Ik heb gisteren gewerkt.', 'I worked yesterday. (normal, spoken)'],
+      ['Ik was moe, dus ik ging naar bed.', 'I was tired, so I went to bed.'],
+      ['Ze woonde toen in Utrecht.', 'She lived in Utrecht at the time.'],
+      ['Ik wilde het net vragen.', 'I was just about to ask.']
+    ],
+    tip: 'Rule of thumb for A2: use the perfect for what happened, the imperfect for what things were like.'
   }
 ];

@@ -1,5 +1,5 @@
 /* Offline shell. Bump CACHE when any asset below changes. */
-var CACHE = 'nederlands-v1';
+var CACHE = 'nederlands-v2';
 var ASSETS = [
   '.', 'index.html', 'manifest.webmanifest',
   'css/styles.css',

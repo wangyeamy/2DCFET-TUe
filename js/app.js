@@ -12,6 +12,8 @@
   var topbar = document.getElementById('topbar');
   var route = { name: 'today', id: null };
   var installEvent = null;
+  var deckFilter = 'all';
+  var LEVELS = { A1: 'A1', A1A2: 'A1–A2', A2: 'A2' };
 
   /* ---------- helpers ---------- */
 
@@ -145,7 +147,9 @@
     var wod = wordOfDay();
     var ready = c.due + newInSession;
 
-    var h = '<section class="hero">' +
+    var h = '';
+    if (!Object.keys(Store.state.cards).length) h += levelPanel(true);
+    h += '<section class="hero">' +
       '<p class="eyebrow">' + greeting() + '</p>' +
       '<h2 class="hero-h">' + (ready
         ? plural(ready, 'kaart', 'kaarten') + ' klaar voor je'
@@ -185,6 +189,8 @@
         ? '<button class="linkrow" data-act="study-weak"><span><b>Zwakke plekken</b>' +
           '<em>' + plural(weak.length, 'kaart', 'kaarten') + ' die je vaak misgaan</em></span><span class="chev">→</span></button>'
         : '') +
+      '<button class="linkrow" data-act="study-build"><span><b>Zinsbouw oefenen</b>' +
+        '<em>zet Nederlandse zinnen in de juiste volgorde</em></span><span class="chev">→</span></button>' +
       '<button class="linkrow" data-act="go" data-route="grammar"><span><b>Grammatica in kleine stukjes</b>' +
         '<em>' + GRAMMAR.length + ' korte uitleggen</em></span><span class="chev">→</span></button>' +
       '<button class="linkrow" data-act="go" data-route="decks"><span><b>Alle woordenlijsten</b>' +
@@ -195,6 +201,23 @@
       h += '<button class="btn btn-block btn-ghost" data-act="install">Zet op je beginscherm</button>';
     }
     return h;
+  }
+
+  function levelPanel(intro) {
+    var cur = Store.settings.level;
+    return '<section class="panel levelpanel">' +
+      '<div class="panel-head"><h3>' + (intro ? 'Waar sta je?' : 'Niveau') + '</h3></div>' +
+      (intro ? '<p class="note">Dit bepaalt welke <b>nieuwe</b> kaarten je krijgt. Kaarten die al lopen komen altijd terug.</p>' : '') +
+      '<div class="segmented" role="group" aria-label="Niveau">' +
+      ['A1', 'A1A2', 'A2'].map(function (k) {
+        return '<button class="seg' + (cur === k ? ' on' : '') + '" data-act="level" data-level="' + k + '">' +
+          LEVELS[k] + '</button>';
+      }).join('') + '</div>' +
+      '<p class="note">' + {
+        A1: 'Alleen de basis: begroeten, getallen, tijd, eten, onderweg, kernwerkwoorden.',
+        A1A2: 'Basis en opbouw door elkaar — nieuwe woorden uit alle lijsten.',
+        A2: 'Alleen opbouw: verleden tijd, scheidbare werkwoorden, vaste combinaties, regelen, gesprek.'
+      }[cur] + '</p></section>';
   }
 
   /* ---------- decks ---------- */
@@ -208,13 +231,20 @@
   }
 
   function viewDecks() {
+    var shown = DECKS.filter(function (d) { return deckFilter === 'all' || (d.level || 'A1') === deckFilter; });
     var h = '<header class="page-head"><h2>Woordenlijsten</h2>' +
-      '<p>Vijftien lijsten, van begroetingen tot kernwerkwoorden. Tik een lijst om te bekijken of te leren.</p></header>';
-    h += '<div class="decklist">' + DECKS.map(function (d) {
+      '<p>' + DECKS.length + ' lijsten, van begroetingen tot de verleden tijd. Tik een lijst om te bekijken of te leren.</p></header>';
+    h += '<div class="chips">' + [['all', 'Alles'], ['A1', 'A1'], ['A2', 'A2']].map(function (f) {
+      var n = f[0] === 'all' ? DECKS.length : DECKS.filter(function (d) { return (d.level || 'A1') === f[0]; }).length;
+      return '<button class="chip' + (deckFilter === f[0] ? ' on' : '') + '" data-act="filter" data-filter="' + f[0] + '">' +
+        f[1] + ' <span class="chip-n">' + n + '</span></button>';
+    }).join('') + '</div>';
+    h += '<div class="decklist">' + shown.map(function (d) {
       var c = SRS.countsFor([d]);
       return '<button class="deckcard" data-act="go" data-route="deck" data-id="' + d.id + '">' +
         '<div class="deckcard-top">' +
-          '<div><h3>' + esc(d.name) + '</h3><p class="deck-en">' + esc(d.en) + '</p></div>' +
+          '<div><h3>' + esc(d.name) + ' <span class="lv">' + (d.level || 'A1') + '</span></h3>' +
+          '<p class="deck-en">' + esc(d.en) + '</p></div>' +
           '<span class="pill' + (c.due ? ' pill-due' : '') + '">' + (c.due ? c.due + ' due' : c.total) + '</span>' +
         '</div>' +
         deckBar(c) +
@@ -229,12 +259,18 @@
     if (!d) return '<p class="note">Lijst niet gevonden.</p>';
     var c = SRS.countsFor([d]);
     var h = '<header class="page-head"><button class="back" data-act="go" data-route="decks">← Woordenlijsten</button>' +
+      '<p class="eyebrow">Niveau ' + (d.level || 'A1') + ' · ' + esc(d.en) + '</p>' +
       '<h2>' + esc(d.name) + '</h2><p>' + esc(d.hint) + '</p></header>';
     h += '<div class="deck-actions">' +
       '<button class="btn btn-primary" data-act="study-deck" data-id="' + d.id + '">Leer deze lijst</button>' +
       '<button class="btn" data-act="study-deck-all" data-id="' + d.id + '">Alles doorlopen</button>' +
       '</div>';
     h += '<p class="note count-note">' + c.total + ' kaarten · ' + c.known + ' beheerst · ' + c.due + ' te herhalen</p>';
+    if (c.nw) {
+      h += '<button class="linkrow" data-act="know-deck" data-id="' + d.id + '">' +
+        '<span><b>Deze lijst ken ik al</b><em>zet ' + plural(c.nw, 'nieuwe kaart', 'nieuwe kaarten') +
+        ' op beheerst, over een maand terug</em></span><span class="chev">✓</span></button>';
+    }
     h += '<ul class="wordlist">' + d.items.map(function (it, i) {
       var key = d.id + ':' + i;
       var st = Store.card(key);
@@ -364,6 +400,8 @@
     var h = '<header class="page-head"><button class="back" data-act="go" data-route="progress">← Voortgang</button>' +
       '<h2>Instellingen</h2></header>';
 
+    h += levelPanel(false);
+
     h += '<section class="panel"><div class="panel-head"><h3>Tempo</h3></div>' +
       '<label class="field"><span>Nieuwe kaarten per dag<b class="mono" id="v-new">' + s.newPerDay + '</b></span>' +
       '<input id="set-new" type="range" min="0" max="30" step="1" value="' + s.newPerDay + '"></label>' +
@@ -413,6 +451,7 @@
     var words = c.item.nl.split(/\s+/).length;
     var typeable = Store.settings.typing && words <= 3 && c.item.nl.indexOf('...') === -1;
     if (!c.st) return 'intro';
+    if (SRS.buildable(c.item) && c.st.r >= 1 && Math.random() < 0.28) return 'build';
     if (Speech.supported && Speech.hasDutch() && Math.random() < 0.2) return 'listen';
     if (words > 3) return Math.random() < 0.5 ? 'flip' : 'choice';
     if (c.st.r < 2) return 'choice';
@@ -456,7 +495,8 @@
     S = {
       queue: queue, done: 0, correct: 0, again: 0, newSeen: 0,
       started: Date.now(), cur: null, phase: 'q', mode: null, field: 'en',
-      choices: [], picked: null, wasCorrect: null, label: opts.label || ''
+      choices: [], picked: null, wasCorrect: null, label: opts.label || '',
+      forceMode: opts.forceMode || null, target: null, tokens: [], placed: []
     };
     go('study');
     nextCard();
@@ -469,7 +509,9 @@
     if (!c) { nextCard(); return; }
     S.cur = c;
     S.wasNew = !c.st;
-    S.mode = pickMode(c);
+    S.mode = (S.forceMode && (S.forceMode !== 'build' || SRS.buildable(c.item)))
+      ? S.forceMode : pickMode(c);
+    if (S.mode === 'build') setupBuild(c);
     S.phase = 'q';
     S.picked = null;
     S.wasCorrect = null;
@@ -479,8 +521,38 @@
     if (S.mode === 'choice' || S.mode === 'listen') S.choices = makeChoices(c, S.field);
     renderStudy();
     if (S.mode === 'listen') speak(c.item.nl);
+    else if (S.mode === 'build') { /* the sentence is the puzzle — stay quiet */ }
     else if (Store.settings.autoSpeak && (S.mode === 'intro' || S.field === 'en')) Speech.say(c.item.nl);
     if (S.mode === 'type') focusInput();
+  }
+
+  /* Word-order drill: the example sentence, shuffled into tappable chips. */
+  function setupBuild(c) {
+    var words = c.item.ex.trim().split(/\s+/);
+    S.target = words;
+    var toks = words.map(function (w, i) { return { w: w, i: i }; });
+    for (var n = 0; n < 6; n++) {
+      SRS.shuffle(toks);
+      if (toks.some(function (t, i) { return t.i !== i; })) break;   // never hand back the answer
+    }
+    S.tokens = toks;
+    S.placed = [];
+  }
+
+  function buildAnswer() {
+    return S.placed.map(function (p) { return S.tokens[p].w; }).join(' ');
+  }
+
+  function tokensLeft() {
+    return S.tokens.map(function (_, i) { return i; }).filter(function (i) { return S.placed.indexOf(i) === -1; });
+  }
+
+  function buildPool() {
+    var left = tokensLeft();
+    if (!left.length) return '<p class="slot-hint pool-done">alle woorden geplaatst — tik Check</p>';
+    return '<div class="pool">' + left.map(function (i) {
+      return '<button class="tok" data-act="tok-add" data-i="' + i + '">' + esc(S.tokens[i].w) + '</button>';
+    }).join('') + '</div>';
   }
 
   function focusInput() {
@@ -513,10 +585,11 @@
     S.done++;
     if (correct) S.correct++; else { S.again++; S.queue.push(c.key); }
     renderStudy();
-    if (Store.settings.autoSpeak) Speech.say(c.item.nl);
+    if (Store.settings.autoSpeak) Speech.say(S.mode === 'build' ? c.item.ex : c.item.nl);
     if (correct) {
       var tok = ++advanceToken;
-      setTimeout(function () { if (tok === advanceToken && S && S.phase === 'a') nextCard(); }, 1150);
+      setTimeout(function () { if (tok === advanceToken && S && S.phase === 'a') nextCard(); },
+        S.mode === 'build' ? 1900 : 1150);
     }
   }
 
@@ -537,7 +610,7 @@
 
     var badge = {
       intro: 'nieuw woord', choice: 'kies het juiste', type: 'typ het Nederlands',
-      listen: 'luister', flip: 'zeg het eerst zelf'
+      listen: 'luister', flip: 'zeg het eerst zelf', build: 'zet de zin op volgorde'
     }[S.mode];
 
     h += '<div class="card-wrap"><div class="card' +
@@ -558,6 +631,23 @@
     } else if (S.mode === 'type') {
       h += '<p class="prompt">' + esc(it.en) + '</p>' +
         (it.art ? '<p class="artnote">een <b>' + it.art + '</b>-woord</p>' : '');
+    } else if (S.mode === 'build') {
+      h += '<p class="prompt">' + esc(it.exEn || it.en) + '</p>' +
+        '<div class="slot' + (S.placed.length ? '' : ' slot-empty') + '">' +
+        (S.placed.length
+          ? S.placed.map(function (tp, pos) {
+              return '<button class="tok tok-in" data-act="tok-remove" data-p="' + pos + '">' +
+                esc(S.tokens[tp].w) + '</button>';
+            }).join('')
+          : '<span class="slot-hint">tik de woorden in de juiste volgorde</span>') +
+        '</div>' +
+        (S.phase === 'q' ? buildPool() : '') +
+        (S.phase === 'a'
+          ? '<div class="verdict">' +
+            (S.wasCorrect ? '<b class="v-ok">Precies</b>' : '<b class="v-bad">De juiste volgorde is:</b>') +
+            '<p class="nl-word sm">' + esc(it.ex) + '</p>' +
+            speakerBtn(it.ex) + '</div>'
+          : '');
     } else if (S.mode === 'flip') {
       var flipFront = S.field === 'en' ? it.nl : it.en;
       h += '<p class="' + (S.field === 'en' ? 'nl-word lg' : 'prompt') + '">' + esc(flipFront) + '</p>' +
@@ -570,6 +660,10 @@
       var qFront = S.field === 'en' ? it.nl : it.en;
       h += '<p class="' + (S.field === 'en' ? 'nl-word lg' : 'prompt') + '">' + esc(qFront) + '</p>' +
         (S.field === 'en' ? speakerBtn(it.nl, 'lg') : '');
+    }
+
+    if (S.phase === 'a' && S.mode === 'build' && !S.wasCorrect && S.picked) {
+      h += '<p class="picked">jij zette: ' + esc(S.picked) + '</p>';
     }
 
     if (S.phase === 'a' && (S.mode === 'choice' || S.mode === 'type' || S.mode === 'listen')) {
@@ -590,9 +684,16 @@
       if (S.mode === 'intro') {
         h += '<div class="btn-pair">' +
           '<button class="btn" data-act="grade" data-g="1">Moeilijk</button>' +
-          '<button class="btn btn-primary" data-act="grade" data-g="2">Snap ik</button></div>';
+          '<button class="btn btn-primary" data-act="grade" data-g="2">Snap ik</button></div>' +
+          '<button class="btn btn-ghost btn-block" data-act="know-card">Dit ken ik al</button>';
       } else if (S.mode === 'flip') {
         h += '<button class="btn btn-primary btn-block" data-act="reveal">Toon het antwoord</button>';
+      } else if (S.mode === 'build') {
+        var left = tokensLeft();
+        h += '<div class="btn-pair">' +
+          '<button class="btn" data-act="build-give">Laat zien</button>' +
+          '<button class="btn btn-primary" data-act="build-check"' + (left.length ? ' disabled' : '') + '>Check</button>' +
+          '</div>';
       } else if (S.mode === 'type') {
         h += '<form class="typeform" id="typeform" autocomplete="off">' +
           '<input id="typed" name="typed" type="text" inputmode="text" enterkeyhint="done" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="typ in het Nederlands…" aria-label="Typ het Nederlandse woord">' +
@@ -667,6 +768,53 @@
       answer(val === S.cur.item[S.field], val);
       return;
     }
+    if (act === 'tok-add') {
+      if (S.phase !== 'q') return;
+      var ti = Number(el.dataset.i);
+      if (S.placed.indexOf(ti) === -1) S.placed.push(ti);
+      renderStudy();
+      return;
+    }
+    if (act === 'tok-remove') {
+      if (S.phase !== 'q') return;
+      S.placed.splice(Number(el.dataset.p), 1);
+      renderStudy();
+      return;
+    }
+    if (act === 'build-check') {
+      if (S.phase !== 'q') return;
+      answer(norm(buildAnswer()) === norm(S.target.join(' ')), buildAnswer());
+      return;
+    }
+    if (act === 'build-give') {
+      if (S.phase !== 'q') return;
+      answer(false, null);
+      return;
+    }
+    if (act === 'know-card') {
+      SRS.markKnown(S.cur.key);
+      Store.record(true, S.wasNew);
+      S.done++; S.correct++;
+      if (S.wasNew) S.newSeen++;
+      nextCard();
+      return;
+    }
+    if (act === 'know-deck') {
+      var kd = deckById(el.dataset.id);
+      var fresh = SRS.keysOf(kd).filter(function (k) { return !Store.card(k); });
+      if (fresh.length && confirm(fresh.length + ' nieuwe kaarten op "beheerst" zetten?')) {
+        fresh.forEach(SRS.markKnown);
+        toast(plural(fresh.length, 'kaart', 'kaarten') + ' op beheerst gezet.');
+        render();
+      }
+      return;
+    }
+    if (act === 'level') { Store.set('level', el.dataset.level); render(); return; }
+    if (act === 'filter') { deckFilter = el.dataset.filter; render(); return; }
+    if (act === 'study-build') {
+      startSession(ALL, { keys: SRS.buildableKeys(ALL).slice(0, 12), forceMode: 'build', label: 'Zinsbouw' });
+      return;
+    }
     if (act === 'study-all') { startSession(ALL, { label: 'Alles' }); return; }
     if (act === 'study-extra') { startSession(ALL, { ignoreLimit: true, limit: 20, label: 'Extra' }); return; }
     if (act === 'study-weak') {
@@ -675,12 +823,12 @@
     }
     if (act === 'study-deck') {
       var d = deckById(el.dataset.id);
-      startSession([d], { label: d.name, emptyMsg: 'Deze lijst is bij — kies "Alles doorlopen".' });
+      startSession([d], { ignoreLevel: true, label: d.name, emptyMsg: 'Deze lijst is bij — kies "Alles doorlopen".' });
       return;
     }
     if (act === 'study-deck-all') {
       var d2 = deckById(el.dataset.id);
-      startSession([d2], { ignoreLimit: true, label: d2.name });
+      startSession([d2], { ignoreLimit: true, ignoreLevel: true, label: d2.name });
       return;
     }
     if (act === 'theme') { setTheme(el.dataset.theme); render(); return; }
@@ -730,6 +878,10 @@
     if (e.target.tagName === 'INPUT') return;
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
+      if (S.phase === 'q' && S.mode === 'build') {
+        if (S.placed.length === S.tokens.length) answer(norm(buildAnswer()) === norm(S.target.join(' ')), buildAnswer());
+        return;
+      }
       if (S.phase === 'q' && S.mode === 'flip') { S.phase = 'a'; renderStudy(); }
       else if (S.phase === 'a' && S.mode !== 'flip') nextCard();
       else if (S.phase === 'q' && S.mode === 'intro') applyGrade(2);

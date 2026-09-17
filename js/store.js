@@ -11,6 +11,7 @@ window.Store = (function () {
     settings: {
       newPerDay: 8,
       goal: 20,
+      level: 'A1A2',
       autoSpeak: true,
       typing: true,
       theme: 'system'
